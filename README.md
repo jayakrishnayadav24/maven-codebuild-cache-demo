@@ -393,9 +393,10 @@ In the CodeBuild logs you'll see hundreds of lines like:
 
 > 📸 **Screenshot 1** — Build 1 - Cold start, downloading all dependencies
 
-![Build 1 - Cold start, downloading all dependencies](<img width="1816" height="762" alt="image" src="https://github.com/user-attachments/assets/94ebdb26-142f-4542-bb20-81740490cd38" />
+![Build 1 - Cold start, downloading all dependencies](
 )
 
+<img width="1816" height="762" alt="image" src="https://github.com/user-attachments/assets/94ebdb26-142f-4542-bb20-81740490cd38" />
 At the end of Build 1, CodeBuild automatically uploads the populated `/root/.m2` to your S3 cache bucket. You can verify this:
 
 > 📸 **Screenshot 2** — S3 cache bucket populated after Build 1
