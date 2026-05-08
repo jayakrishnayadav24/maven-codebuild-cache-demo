@@ -393,8 +393,8 @@ In the CodeBuild logs you'll see hundreds of lines like:
 
 > 📸 **Screenshot 1** — Build 1 - Cold start, downloading all dependencies
 
-![Build 1 - Cold start, downloading all dependencies](
-)
+Build 1 - Cold start, downloading all dependencies
+
 
 <img width="1816" height="762" alt="image" src="https://github.com/user-attachments/assets/94ebdb26-142f-4542-bb20-81740490cd38" />
 At the end of Build 1, CodeBuild automatically uploads the populated `/root/.m2` to your S3 cache bucket. You can verify this:
@@ -402,7 +402,7 @@ At the end of Build 1, CodeBuild automatically uploads the populated `/root/.m2`
 > 📸 **Screenshot 2** — S3 cache bucket populated after Build 1
 
 
-![S3 cache bucket populated after Build 1]()
+S3 cache bucket populated after Build 1
 <img width="1601" height="630" alt="image" src="https://github.com/user-attachments/assets/64d9f9ec-507e-4d3c-9773-20f81d5eb441" />
 
 
@@ -412,17 +412,16 @@ At the end of Build 1, CodeBuild automatically uploads the populated `/root/.m2`
 ---
 
 > 📸 **Screenshot 3** — Same place: CodePipeline → Build stage → **View logs**
-> Scroll to the BUILD phase. Take a screenshot showing **zero** `Downloading from central:` lines and the much shorter **Total time** (~1–2 min).
-> Save as: `screenshots/build-2-warm-cache-no-downloads.png`
 
-![Build 2 - Warm cache, no downloads, fast build](
-)
+
+Build 2 - Warm cache, no downloads, fast build
 <img width="1597" height="748" alt="image" src="https://github.com/user-attachments/assets/efbb03ed-3772-4584-a336-339ea7414f83" />
 
 > 📸 **Screenshot 4** — In the same build logs, scroll to the very top of the BUILD phase where CodeBuild prints the cache restore message:
 > `Cache restored from S3`
 
-![CodeBuild restoring cache from S3]()
+
+CodeBuild restoring cache from S3
 <img width="1583" height="711" alt="image" src="https://github.com/user-attachments/assets/43aac276-9cb7-4786-8ece-1f2fcefab533" />
 ---
 
@@ -431,7 +430,7 @@ At the end of Build 1, CodeBuild automatically uploads the populated `/root/.m2`
 > 📸 **Screenshot 5** — Go to CodePipeline → your pipeline → click **View history** (or **Execution history**)
 
 
-![Pipeline execution history showing time saved with cache]()
+Pipeline execution history showing time saved with cache
 <img width="1697" height="731" alt="image" src="https://github.com/user-attachments/assets/34586318-17f2-4fa2-8050-8f82e36dcc56" />
 
 
