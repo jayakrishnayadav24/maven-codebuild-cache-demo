@@ -401,8 +401,9 @@ At the end of Build 1, CodeBuild automatically uploads the populated `/root/.m2`
 > 📸 **Screenshot 2** — S3 cache bucket populated after Build 1
 
 
-![S3 cache bucket populated after Build 1](<img width="1601" height="630" alt="image" src="https://github.com/user-attachments/assets/64d9f9ec-507e-4d3c-9773-20f81d5eb441" />
-)
+![S3 cache bucket populated after Build 1]()
+<img width="1601" height="630" alt="image" src="https://github.com/user-attachments/assets/64d9f9ec-507e-4d3c-9773-20f81d5eb441" />
+
 
 <img width="1872" height="620" alt="image" src="https://github.com/user-attachments/assets/13d66f98-1bdb-417a-aad1-8909d1ec5d32" />
 
@@ -413,15 +414,15 @@ At the end of Build 1, CodeBuild automatically uploads the populated `/root/.m2`
 > Scroll to the BUILD phase. Take a screenshot showing **zero** `Downloading from central:` lines and the much shorter **Total time** (~1–2 min).
 > Save as: `screenshots/build-2-warm-cache-no-downloads.png`
 
-![Build 2 - Warm cache, no downloads, fast build](<img width="1597" height="748" alt="image" src="https://github.com/user-attachments/assets/efbb03ed-3772-4584-a336-339ea7414f83" />
+![Build 2 - Warm cache, no downloads, fast build](
 )
+<img width="1597" height="748" alt="image" src="https://github.com/user-attachments/assets/efbb03ed-3772-4584-a336-339ea7414f83" />
 
 > 📸 **Screenshot 4** — In the same build logs, scroll to the very top of the BUILD phase where CodeBuild prints the cache restore message:
 > `Cache restored from S3`
 
-![CodeBuild restoring cache from S3](<img width="1583" height="711" alt="image" src="https://github.com/user-attachments/assets/43aac276-9cb7-4786-8ece-1f2fcefab533" />
-)
-
+![CodeBuild restoring cache from S3]()
+<img width="1583" height="711" alt="image" src="https://github.com/user-attachments/assets/43aac276-9cb7-4786-8ece-1f2fcefab533" />
 ---
 
 ### Build Duration Comparison in CodePipeline Console
