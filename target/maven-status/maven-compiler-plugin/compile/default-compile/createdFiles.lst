@@ -1,7 +1,0 @@
-com/example/productionapp/controller/ProductController.class
-com/example/productionapp/config/AwsConfig.class
-com/example/productionapp/service/ProductService.class
-com/example/productionapp/repository/ProductRepository.class
-com/example/productionapp/entity/Product.class
-com/example/productionapp/ProductionAppApplication.class
-com/example/productionapp/dto/ProductDto.class

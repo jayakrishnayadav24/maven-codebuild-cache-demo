@@ -1,7 +1,0 @@
-/home/jaya/java-project-with-large-package-down/src/main/java/com/example/productionapp/dto/ProductDto.java
-/home/jaya/java-project-with-large-package-down/src/main/java/com/example/productionapp/ProductionAppApplication.java
-/home/jaya/java-project-with-large-package-down/src/main/java/com/example/productionapp/repository/ProductRepository.java
-/home/jaya/java-project-with-large-package-down/src/main/java/com/example/productionapp/service/ProductService.java
-/home/jaya/java-project-with-large-package-down/src/main/java/com/example/productionapp/entity/Product.java
-/home/jaya/java-project-with-large-package-down/src/main/java/com/example/productionapp/controller/ProductController.java
-/home/jaya/java-project-with-large-package-down/src/main/java/com/example/productionapp/config/AwsConfig.java
