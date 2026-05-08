@@ -432,6 +432,7 @@ At the end of Build 1, CodeBuild automatically uploads the populated `/root/.m2`
 
 
 ![Pipeline execution history showing time saved with cache]()
+<img width="1697" height="731" alt="image" src="https://github.com/user-attachments/assets/34586318-17f2-4fa2-8050-8f82e36dcc56" />
 
 
 
