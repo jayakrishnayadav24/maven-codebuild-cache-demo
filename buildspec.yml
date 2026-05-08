@@ -1,0 +1,29 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      java: corretto17
+  pre_build:
+    commands:
+      - echo "Starting pre-build phase..."
+      - echo "Maven version:"
+      - mvn --version
+  build:
+    commands:
+      - echo "Build started on `date`"
+      - mvn clean package -DskipTests
+  post_build:
+    commands:
+      - echo "Build completed on `date`"
+      - echo "Artifact location:"
+      - ls -lh target/*.jar
+
+artifacts:
+  files:
+    - target/*.jar
+  name: production-app-$(date +%Y%m%d-%H%M%S)
+
+cache:
+  paths:
+    - '/root/.m2/**/*'
