@@ -93,14 +93,127 @@ When creating or editing your CodeBuild project:
 4. Choose your S3 bucket (e.g., `my-company-codebuild-cache`)
 5. Set a cache prefix like `maven-cache/production-app`
 
-### Option 2: CloudFormation
+### Option 2: Full CloudFormation Template (Infrastructure as Code)
+
+This is the recommended production approach — everything defined as code in `pipeline.yml`.
+
+The template provisions:
+- S3 bucket for build artifacts (with 30-day lifecycle)
+- S3 bucket for Maven cache (with 30-day lifecycle)
+- IAM roles for CodeBuild and CodePipeline with least-privilege permissions
+- CodeBuild project with S3 cache configured
+- CodePipeline with GitHub source (via CodeStar Connection) and Build stage
 
 ```yaml
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CodePipeline + CodeBuild with Maven S3 cache
+
+Parameters:
+  GitHubOwner:
+    Type: String
+    Default: jayakrishnayadav24
+  GitHubRepo:
+    Type: String
+    Default: maven-codebuild-cache-demo
+  GitHubBranch:
+    Type: String
+    Default: main
+  GitHubConnectionArn:
+    Type: String
+    Default: arn:aws:codeconnections:us-east-1:863570158116:connection/4af6db6c-6c65-4484-874f-5dbf9f9ba836
+
 Resources:
+
+  ArtifactBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "maven-demo-artifacts-${AWS::AccountId}"
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpireOldArtifacts
+            Status: Enabled
+            ExpirationInDays: 30
+
+  CacheBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "maven-demo-cache-${AWS::AccountId}"
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpireMavenCache
+            Status: Enabled
+            Prefix: maven-cache/
+            ExpirationInDays: 30
+
+  CodeBuildRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: maven-demo-codebuild-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: CodeBuildPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:GetObjectVersion
+                Resource:
+                  - !Sub "arn:aws:s3:::maven-demo-artifacts-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::maven-demo-cache-${AWS::AccountId}/*"
+
+  CodePipelineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: maven-demo-codepipeline-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codepipeline.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: CodePipelinePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:GetBucketVersioning
+                Resource:
+                  - !Sub "arn:aws:s3:::maven-demo-artifacts-${AWS::AccountId}"
+                  - !Sub "arn:aws:s3:::maven-demo-artifacts-${AWS::AccountId}/*"
+              - Effect: Allow
+                Action:
+                  - codebuild:BatchGetBuilds
+                  - codebuild:StartBuild
+                Resource: !GetAtt CodeBuildProject.Arn
+              - Effect: Allow
+                Action:
+                  - codestar-connections:UseConnection
+                Resource: !Ref GitHubConnectionArn
+
   CodeBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
-      Name: production-app-build
+      Name: maven-codebuild-cache-demo
       ServiceRole: !GetAtt CodeBuildRole.Arn
       Artifacts:
         Type: CODEPIPELINE
@@ -113,7 +226,59 @@ Resources:
         BuildSpec: buildspec.yml
       Cache:
         Type: S3
-        Location: !Sub "${CacheBucket}/maven-cache/production-app"
+        Location: !Sub "maven-demo-cache-${AWS::AccountId}/maven-cache/production-app"
+      LogsConfig:
+        CloudWatchLogs:
+          Status: ENABLED
+          GroupName: /aws/codebuild/maven-codebuild-cache-demo
+
+  Pipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      Name: maven-codebuild-cache-demo-pipeline
+      RoleArn: !GetAtt CodePipelineRole.Arn
+      ArtifactStore:
+        Type: S3
+        Location: !Ref ArtifactBucket
+      Stages:
+        - Name: Source
+          Actions:
+            - Name: GitHub_Source
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Provider: CodeStarSourceConnection
+                Version: '1'
+              Configuration:
+                ConnectionArn: !Ref GitHubConnectionArn
+                FullRepositoryId: !Sub "${GitHubOwner}/${GitHubRepo}"
+                BranchName: !Ref GitHubBranch
+                OutputArtifactFormat: CODE_ZIP
+                DetectChanges: true
+              OutputArtifacts:
+                - Name: SourceOutput
+        - Name: Build
+          Actions:
+            - Name: Maven_Build
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: '1'
+              Configuration:
+                ProjectName: !Ref CodeBuildProject
+              InputArtifacts:
+                - Name: SourceOutput
+              OutputArtifacts:
+                - Name: BuildOutput
+
+Outputs:
+  PipelineURL:
+    Value: !Sub "https://console.aws.amazon.com/codesuite/codepipeline/pipelines/maven-codebuild-cache-demo-pipeline/view?region=${AWS::Region}"
+  ArtifactBucket:
+    Value: !Ref ArtifactBucket
+  CacheBucket:
+    Value: !Ref CacheBucket
 ```
 
 ### Option 3: AWS CLI
@@ -123,6 +288,61 @@ aws codebuild update-project \
   --name production-app-build \
   --cache type=S3,location=my-company-codebuild-cache/maven-cache/production-app
 ```
+
+---
+
+## Deploying the CloudFormation Stack
+
+With `pipeline.yml` saved in your repo root, deploy the entire pipeline infrastructure with a single command:
+
+**Step 1 — Deploy the stack:**
+```bash
+aws cloudformation deploy \
+  --template-file pipeline.yml \
+  --stack-name maven-codebuild-cache-demo \
+  --capabilities CAPABILITY_NAMED_IAM \
+  --region us-east-1
+```
+
+`--capabilities CAPABILITY_NAMED_IAM` is required because the template creates named IAM roles. You'll see:
+
+```
+Waiting for changeset to be created..
+Waiting for stack create/update to complete
+Successfully created/updated stack - maven-codebuild-cache-demo
+```
+
+That's it. Once deployed:
+- Pipeline auto-triggers on every push to `main`
+- First build → downloads all Maven deps (~4–6 min), saves to S3 cache
+- Every build after → restores from S3 cache (~10–20 sec for deps)
+
+**Step 2 — Check stack status:**
+```bash
+aws cloudformation describe-stacks \
+  --stack-name maven-codebuild-cache-demo \
+  --region us-east-1 \
+  --query "Stacks[0].StackStatus"
+```
+
+**Step 3 — View stack outputs (pipeline URL, bucket names):**
+```bash
+aws cloudformation describe-stacks \
+  --stack-name maven-codebuild-cache-demo \
+  --region us-east-1 \
+  --query "Stacks[0].Outputs"
+```
+
+**To delete everything when done:**
+```bash
+aws cloudformation delete-stack \
+  --stack-name maven-codebuild-cache-demo \
+  --region us-east-1
+```
+
+> Note: Empty the S3 buckets manually before deleting the stack, as CloudFormation cannot delete non-empty buckets.
+
+Once deployed, the pipeline auto-triggers on every push to `main` via the GitHub CodeStar Connection.
 
 ---
 
@@ -163,6 +383,37 @@ CodePipeline Trigger (push to main)
 | Savings | **~5 minutes per build** | **~60–70% faster** |
 
 For a team running 15–20 builds/day, that's **1–2 hours of saved build time daily** per service.
+
+---
+
+## GitHub to Pipeline: How the Trigger Works
+
+The pipeline uses **AWS CodeStar Connections** (now called CodeConnections) to connect to GitHub. This is the modern, webhook-based approach replacing the old OAuth token method.
+
+```
+Git push to main
+       │
+       ▼
+GitHub webhook → AWS CodeConnections
+       │
+       ▼
+CodePipeline Source stage triggers
+       │
+       ▼
+CodeBuild picks up the source ZIP
+       │
+       ▼
+buildspec.yml executes
+```
+
+The key config in the CloudFormation template that enables auto-trigger:
+```yaml
+Configuration:
+  ConnectionArn: !Ref GitHubConnectionArn
+  FullRepositoryId: jayakrishnayadav24/maven-codebuild-cache-demo
+  BranchName: main
+  DetectChanges: true    # <-- enables auto-trigger on push
+```
 
 ---
 
